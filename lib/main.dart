@@ -1,41 +1,199 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:santos/firebase_options.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:santos/pages/home.dart';
 
-void main() => runApp(MyApp());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  runApp(const MiAplicacion());
+}
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-  // This widget is the root of your application.
+class MiAplicacion extends StatelessWidget {
+  const MiAplicacion({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      // Application name
-      title: 'Flutter Hello World',
-      // Application theme data, you can set the colors for the application as
-      // you want
+      title: ' Veterinaria Petco',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        // useMaterial3: false,
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.red, // Cambié el color principal a morado
       ),
-      // A widget which will be started on application startup
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      home: PaginaSesion(),
     );
   }
 }
 
-class MyHomePage extends StatelessWidget {
-  final String title;
-  const MyHomePage({super.key, required this.title});  
+// ignore: must_be_immutable
+class PaginaSesion extends StatelessWidget {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  // ignore: prefer_final_fields
+  CollectionReference _usersCollection =
+      FirebaseFirestore.instance.collection('usuario');
+
+  PaginaSesion({super.key});
+
+  void _login(BuildContext context) async {
+    String email = _emailController.text;
+    String contrasena = _passwordController.text;
+
+    QuerySnapshot querySnapshot = await _usersCollection
+        .where('email', isEqualTo: email)
+        .where('password', isEqualTo: contrasena)
+        .get();
+
+    if (querySnapshot.size > 0) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => PaginaInicio(email)),
+      );
+    } else {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Error de inicio de sesión'),
+            content:
+                const Text('Credenciales incorrectas. Inténtalo de nuevo.'),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('Aceptar'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
+  }
+
+  void _registro(BuildContext context) async {
+    String email = _emailController.text;
+    String contrasena = _passwordController.text;
+
+    QuerySnapshot querySnapshot =
+        await _usersCollection.where('email', isEqualTo: email).get();
+
+    if (querySnapshot.size > 0) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Error de registro'),
+            content: const Text('El usuario ya está registrado.'),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('Aceptar'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    } else {
+      await _usersCollection.add({
+        'email': email,
+        'password': contrasena,
+      });
+
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Registro exitoso'),
+            content: const Text('El usuario ha sido registrado correctamente.'),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('Aceptar'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        // The title text which will be shown on the action bar
-        title: Text(title),
+        centerTitle: true,
+        title: const Text('Petco', style: TextStyle(color: Colors.white)),
+        backgroundColor: const Color(
+            0xffbc2409), // Cambié el color de la barra de navegación a un tono de morado
+        elevation: 8,
       ),
-      body: Center(
-        child: Text(
-          'Hello, World!',
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: <Widget>[
+            const Text(
+              "Inicio de sesión",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                height: 2.5,
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            TextField(
+              controller: _emailController,
+              decoration: const InputDecoration(
+                labelText: 'Correo electrónico',
+              ),
+            ),
+            TextField(
+              controller: _passwordController,
+              decoration: const InputDecoration(
+                labelText: 'Contraseña',
+              ),
+              obscureText: true,
+            ),
+            const SizedBox(height: 20.0),
+            ElevatedButton(
+              child: const Text(
+                'Iniciar sesión',
+                style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white),
+              ),
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size(340, 40),
+                backgroundColor: const Color(
+                    0xffbc2409), // Cambié el color del botón de inicio de sesión a un tono de morado
+              ),
+              onPressed: () => _login(context),
+            ),
+            const SizedBox(height: 20.0),
+            ElevatedButton(
+              child: const Text(
+                'Registrarse',
+                style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white),
+              ),
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size(340, 40),
+                backgroundColor: const Color(
+                    0xffbc2409), // Cambié el color del botón de registro a un tono de morado
+              ),
+              onPressed: () => _registro(context),
+            ),
+          ],
         ),
       ),
     );

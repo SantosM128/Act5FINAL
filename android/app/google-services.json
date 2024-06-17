@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "74081211266",
+    "project_id": "act5android",
+    "storage_bucket": "act5android.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:74081211266:android:d2134118ae926cc0dbb59b",
+        "android_client_info": {
+          "package_name": "com.santos"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAw0OZysXovMLhJnYZuHPI0KqTm8uffOcc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
